@@ -21,11 +21,13 @@ type DBredis struct {
 func (dbr *DBredis) Put(p *Post) error {
 	key := p.PostName + ":" + p.Author + ":" + p.Date
 	hkey := HashPOSTS + ":" + getHash(key)
+	jsn, _ := json.Marshal(p)
 
 	pipe := dbr.Client.Pipeline()
-	pipe.HSet(hkey, "name", p.Author)
-	pipe.HSet(hkey, "post", p.PostName)
-	pipe.HSet(hkey, "date", p.Date)
+	pipe.Set(hkey, string(jsn), 0)
+	//pipe.HSet(hkey, "name", p.Author)
+	//pipe.HSet(hkey, "post", p.PostName)
+	//pipe.HSet(hkey, "date", p.Date)
 	pipe.HIncrBy(AuthorPosts, p.Author, 1)
 	pipe.SAdd("author:"+p.Author, hkey)
 	pipe.SAdd("post:"+p.PostName, hkey)
@@ -34,12 +36,7 @@ func (dbr *DBredis) Put(p *Post) error {
 }
 
 func (dbr *DBredis) Get(p *Post) (string, error) {
-	//key := p.PostName + ":" + p.Author + ":" + p.Date
-	//key = HashPOSTS + ":" + getHash(key)
-	var (
-		cur    uint64 = 0
-		offset int64  = 0
-	)
+
 	var list *redis.StringSliceCmd
 	switch {
 	case p.Author != `` && p.PostName == ``:
@@ -61,11 +58,9 @@ func (dbr *DBredis) Get(p *Post) (string, error) {
 	if err := pp.Err(); err != nil {
 		return "", err
 	}
-	fmt.Println(pp.Val())
+	jsn, _ := json.Marshal(pp.Val())
 
-	//resp := dbr.Client.HScan("post:20ac22cfec29669d04d8d1950cbbf5e2d736c7f1", cur, "*", offset)
-	//fmt.Println(resp)
-	return "", nil
+	return string(jsn), nil
 }
 
 func (dbr *DBredis) Count(p *Post) (string, error) {

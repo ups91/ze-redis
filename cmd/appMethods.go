@@ -39,11 +39,13 @@ func (a *app) Get(w http.ResponseWriter, r *http.Request) {
 		a.Log.Log(err.Error())
 		return
 	}
-	if _, err := a.DB.Get(&p); err != nil {
+	jsn, err := a.DB.Get(&p)
+	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		a.Log.Log(err.Error())
 		return
 	}
+	fmt.Fprintf(w, jsn)
 
 }
 func (a *app) Count(w http.ResponseWriter, r *http.Request) {
