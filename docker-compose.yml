@@ -1,0 +1,13 @@
+version: "3" 
+services:
+  ze-redis:
+    image: docker.io/ups91/ze-redis-test
+    ports:
+      - "8421:8421"
+    links:
+      - redis
+  redis:
+    image: redis
+    ports:
+      - "6379:6379"
+
